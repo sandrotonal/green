@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="GreenCare brings people and communities together to protect nature and act on climate change." />
+    <meta name="theme-color" content="#D9F99D" />
+    <title>GreenCare — Saving Nature Together</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: { extend: {
+          colors: { 'brand-lime': '#D9F99D', 'neutral-surface': '#F9FAFB', 'text-primary': '#111827', 'text-secondary': '#4B5563' },
+          fontFamily: { sans: ['Inter Tight', 'sans-serif'] },
+          borderRadius: { '4xl': '2.5rem', '5xl': '3rem' },
+          boxShadow: { card: '0 20px 40px rgba(0, 0, 0, 0.05)' }
+        }}
+      };
+    </script>
+    <link rel="stylesheet" href="/src/styles/main.css" />
+  </head>
+  <body class="bg-white min-h-screen font-sans text-text-primary selection:bg-brand-lime selection:text-black overflow-x-hidden">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div id="app" aria-live="off"></div>
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-sm">
+    <nav class="flex items-center justify-between px-4 sm:px-6 py-4 max-w-7xl mx-auto w-full">
+      <a href="/" class="flex items-center gap-2 font-bold text-lg sm:text-xl tracking-tight text-gray-900 shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 sm:w-6 sm:h-6 text-gray-900 fill-current"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+        <span>GreenCare</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600" aria-label="Primary navigation">
+        <a href="/" class="text-black font-semibold">Home</a>
+        <a href="/mission/" class="hover:text-black transition-colors duration-200">Our Mission</a>
+        <a href="/projects/" class="hover:text-black transition-colors duration-200">Projects</a>
+        <a href="/problems/" class="hover:text-black transition-colors duration-200">Problems</a>
+        <a href="/impact/" class="hover:text-black transition-colors duration-200">Impact</a>
+      </div>
+      <div class="hidden md:block">
+        <button type="button" data-open-contact class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-semibold hover:bg-gray-50 transition-colors duration-200">Contact Us</button>
+      </div>
+      <button id="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu" class="md:hidden text-gray-900 p-1 -mr-1 menu-trigger" aria-label="Open navigation menu">
+        <svg id="icon-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+        <svg id="icon-close" hidden xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 18 18"></path></svg>
+      </button>
+    </nav>
+    <div id="mobile-menu-backdrop" hidden class="mobile-menu-backdrop" aria-hidden="true"></div>
+    <aside id="mobile-menu" hidden class="mobile-drawer" aria-label="Mobile navigation">
+      <div class="mobile-drawer__top">
+        <span class="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">Explore GreenCare</span>
+        <button type="button" data-close-menu class="drawer-close" aria-label="Close navigation menu">×</button>
+      </div>
+      <nav class="flex flex-col gap-2" aria-label="Mobile primary navigation">
+        <a href="/" class="mobile-nav-link"><span class="nav-index">01</span><span>Home</span><span aria-hidden="true">↗</span></a>
+        <a href="/mission/" class="mobile-nav-link"><span class="nav-index">02</span><span>Our Mission</span><span aria-hidden="true">↗</span></a>
+        <a href="/projects/" class="mobile-nav-link"><span class="nav-index">03</span><span>Projects</span><span aria-hidden="true">↗</span></a>
+        <a href="/problems/" class="mobile-nav-link"><span class="nav-index">04</span><span>Problems</span><span aria-hidden="true">↗</span></a>
+        <a href="/impact/" class="mobile-nav-link"><span class="nav-index">05</span><span>Our Impact</span><span aria-hidden="true">↗</span></a>
+      </nav>
+      <div class="mt-auto pt-8">
+        <p class="text-sm text-gray-500 leading-relaxed mb-4">Small actions become a movement when we do them together.</p>
+        <button type="button" data-open-contact class="w-full text-center px-5 py-3 rounded-full bg-gray-900 text-white font-semibold hover:bg-lime-700 transition-colors">Start a conversation <span aria-hidden="true">↗</span></button>
+      </div>
+    </aside>
+  </header>
