@@ -4,13 +4,13 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 sm:w-6 sm:h-6 text-gray-900 fill-current"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
         <span>GreenCare</span>
       </a>
-      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600" aria-label="Primary navigation">
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600" aria-label="Primary navigation">
         <a href="/" class="text-black font-semibold">Home</a>
         <a href="/mission/" class="hover:text-black transition-colors duration-200">Our Mission</a>
         <a href="/projects/" class="hover:text-black transition-colors duration-200">Projects</a>
         <a href="/problems/" class="hover:text-black transition-colors duration-200">Problems</a>
         <a href="/impact/" class="hover:text-black transition-colors duration-200">Impact</a>
-      </div>
+      </nav>
       <div class="hidden md:block">
         <div class="flex items-center gap-2"><a href="/donate/" class="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-lime-700 transition-colors duration-200">Donate</a><button type="button" data-open-contact class="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-semibold hover:bg-gray-50 transition-colors duration-200">Contact Us</button></div>
       </div>
@@ -20,7 +20,7 @@
       </button>
     </nav>
     <div id="mobile-menu-backdrop" hidden class="mobile-menu-backdrop" aria-hidden="true"></div>
-    <aside id="mobile-menu" hidden class="mobile-drawer" aria-label="Mobile navigation">
+    <aside id="mobile-menu" hidden class="mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile navigation">
       <div class="mobile-drawer__top">
         <span class="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">Explore GreenCare</span>
         <button type="button" data-close-menu class="drawer-close" aria-label="Close navigation menu">×</button>

@@ -67,20 +67,29 @@ export function setupInteractions(root) {
   const menuIcon = root.getElementById('icon-menu');
   const closeIcon = root.getElementById('icon-close');
   let menuCloseTimer;
+  let menuReturnFocus = null;
+  const menuFocusable = () => [...mobileMenu?.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') || []];
 
   const setMenuState = (open) => {
     window.clearTimeout(menuCloseTimer);
     if (open) {
+      menuReturnFocus = document.activeElement;
       mobileMenu.hidden = false;
       menuBackdrop.hidden = false;
       requestAnimationFrame(() => {
         mobileMenu.classList.add('is-open');
         menuBackdrop.classList.add('is-visible');
+        mobileMenu.querySelector('[data-close-menu]')?.focus();
       });
     } else {
       mobileMenu.classList.remove('is-open');
       menuBackdrop.classList.remove('is-visible');
-      menuCloseTimer = window.setTimeout(() => { mobileMenu.hidden = true; menuBackdrop.hidden = true; }, 300);
+      menuCloseTimer = window.setTimeout(() => {
+        mobileMenu.hidden = true;
+        menuBackdrop.hidden = true;
+        if (menuReturnFocus && document.contains(menuReturnFocus)) menuReturnFocus.focus();
+        menuReturnFocus = null;
+      }, 300);
     }
     document.body.classList.toggle('no-scroll', open);
     menuButton.setAttribute('aria-expanded', String(open));
@@ -92,6 +101,15 @@ export function setupInteractions(root) {
   mobileMenu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenuState(false)));
   root.querySelector('[data-close-menu]')?.addEventListener('click', () => setMenuState(false));
   menuBackdrop?.addEventListener('click', () => setMenuState(false));
+  mobileMenu?.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const focusable = menuFocusable();
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && menuButton?.getAttribute('aria-expanded') === 'true') setMenuState(false); });
   const closeMenuOnScroll = () => { if (menuButton?.getAttribute('aria-expanded') === 'true') setMenuState(false); };
   window.addEventListener('scroll', closeMenuOnScroll, { passive: true });
@@ -114,11 +132,19 @@ export function setupInteractions(root) {
   });
   dialog?.querySelector('[data-close-contact]')?.addEventListener('click', () => setDialogState(dialog, false));
   dialog?.addEventListener('click', (event) => { if (event.target === dialog) setDialogState(dialog, false); });
+  dialog?.addEventListener('cancel', (event) => { event.preventDefault(); setDialogState(dialog, false); });
   dialog?.querySelector('form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const email = form.querySelector('[type="email"]');
-    if (!emailPattern.test(email.value.trim())) { email.setAttribute('aria-invalid', 'true'); email.focus(); return; }
+    if (!emailPattern.test(email.value.trim())) {
+      email.setAttribute('aria-invalid', 'true');
+      email.setAttribute('aria-describedby', 'contact-form-message');
+      const message = dialog.querySelector('[data-form-message]');
+      if (message) { message.textContent = 'Please enter a valid email address.'; message.className = 'form-message form-message--error'; }
+      email.focus();
+      return;
+    }
     try {
       const result = await sendContactMessage({ name: form.querySelector('[name="name"]').value.trim(), email: email.value.trim(), message: form.querySelector('[name="message"]').value.trim() });
       form.reset();
@@ -133,15 +159,29 @@ export function setupInteractions(root) {
     event.preventDefault();
     const amount = form.querySelector('[name="amount"]')?.value.trim();
     const email = form.querySelector('[name="email"]');
-    if (!amount || Number(amount) <= 0 || !emailPattern.test(email.value.trim())) { email.setAttribute('aria-invalid', 'true'); email.focus(); return; }
+    if (!amount || Number(amount) <= 0 || !emailPattern.test(email.value.trim())) {
+      email.setAttribute('aria-invalid', 'true');
+      email.setAttribute('aria-describedby', 'donation-form-message');
+      const message = form.querySelector('[data-form-message]');
+      if (message) { message.textContent = 'Enter a valid email and an amount greater than zero.'; message.className = 'form-message form-message--error'; }
+      email.focus();
+      return;
+    }
     email.removeAttribute('aria-invalid');
+    email.removeAttribute('aria-describedby');
     const button = form.querySelector('[type="submit"]');
     button.disabled = true;
     button.setAttribute('aria-busy', 'true');
     try {
       const result = await createDonationIntent({ amount: `$${Number(amount).toFixed(2)}`, email: email.value.trim(), project: form.querySelector('[name="project"]').value });
+      const message = form.querySelector('[data-form-message]');
+      if (message) { message.textContent = result.mode === 'endpoint' ? 'Secure donation checkout is opening.' : 'Your email client is ready to send the donation request.'; message.className = 'form-message form-message--success'; }
       showToast(result.mode === 'endpoint' ? 'Secure donation checkout is opening.' : 'Your email client is ready to send the donation request.');
-    } catch { showToast('We could not start the donation flow. Please try again.', 'error'); }
+    } catch {
+      const message = form.querySelector('[data-form-message]');
+      if (message) { message.textContent = 'We could not start the donation flow. Please try again.'; message.className = 'form-message form-message--error'; }
+      showToast('We could not start the donation flow. Please try again.', 'error');
+    }
     button.disabled = false;
     button.removeAttribute('aria-busy');
   }));
@@ -212,16 +252,29 @@ export function setupInteractions(root) {
   if (!savedCookieChoice && cookieBanner) requestAnimationFrame(() => { cookieBanner.hidden = false; });
   root.querySelector('[data-cookie-accept]')?.addEventListener('click', () => { saveCookieChoice('all'); showToast('Cookie preferences saved.'); });
   root.querySelector('[data-cookie-essential]')?.addEventListener('click', () => { saveCookieChoice('essential'); showToast('Essential cookies only.'); });
-  root.querySelector('[data-cookie-settings]')?.addEventListener('click', () => {
-    cookieDialog?.showModal();
+  const cookieSettings = root.querySelector('[data-cookie-settings]');
+  if (cookieSettings && !cookieSettings.id) cookieSettings.id = 'cookie-settings-trigger';
+  const setCookieDialogState = (open) => {
+    if (!cookieDialog) return;
+    if (open) {
+      cookieDialog.dataset.trigger = cookieSettings?.id || '';
+      cookieDialog.showModal();
+      cookieDialog.querySelector('input, button')?.focus();
+    } else if (cookieDialog.open) {
+      cookieDialog.close();
+      document.getElementById(cookieDialog.dataset.trigger)?.focus();
+    }
+  };
+  cookieSettings?.addEventListener('click', () => {
     const analytics = root.querySelector('[data-cookie-analytics]');
     if (analytics) analytics.checked = Boolean(savedCookieChoice?.analytics);
-    cookieDialog?.querySelector('input, button')?.focus();
+    setCookieDialogState(true);
   });
-  root.querySelectorAll('[data-cookie-close]').forEach((button) => button.addEventListener('click', () => cookieDialog?.close()));
+  cookieDialog?.addEventListener('cancel', (event) => { event.preventDefault(); setCookieDialogState(false); });
+  root.querySelectorAll('[data-cookie-close]').forEach((button) => button.addEventListener('click', () => setCookieDialogState(false)));
   root.querySelector('[data-cookie-save]')?.addEventListener('click', () => {
     saveCookieChoice(root.querySelector('[data-cookie-analytics]')?.checked ? 'all' : 'essential');
-    cookieDialog?.close();
+    setCookieDialogState(false);
     showToast('Cookie preferences saved.');
   });
 }
