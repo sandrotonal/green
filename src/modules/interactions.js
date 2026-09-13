@@ -1,3 +1,5 @@
+import { createDonationIntent, sendContactMessage, subscribeToNewsletter } from './mail-service.js';
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function showToast(message, kind = 'success') {
@@ -16,7 +18,7 @@ function setFormMessage(form, message, isError) {
   messageEl.className = `form-message ${isError ? 'form-message--error' : 'form-message--success'}`;
 }
 
-function handleSubscribe(form) {
+async function handleSubscribe(form) {
   const input = form.querySelector('input[type="email"]');
   const email = input.value.trim();
   if (!emailPattern.test(email)) {
@@ -26,9 +28,16 @@ function handleSubscribe(form) {
     return;
   }
   input.removeAttribute('aria-invalid');
-  form.reset();
-  setFormMessage(form, 'You are subscribed. Welcome to GreenCare!', false);
-  showToast('Subscription confirmed. Thank you for joining GreenCare!');
+  try {
+    const result = await subscribeToNewsletter(email);
+    form.reset();
+    const message = result.mode === 'endpoint' ? 'You are subscribed. Welcome to GreenCare!' : 'Your email client is ready to send the subscription request.';
+    setFormMessage(form, message, false);
+    showToast(message);
+  } catch (error) {
+    setFormMessage(form, 'We could not reach the mail service. Please try again.', true);
+    showToast(error.message, 'error');
+  }
 }
 
 function setDialogState(dialog, open, trigger) {
@@ -95,7 +104,7 @@ export function setupInteractions(root) {
   window.addEventListener('resize', () => { if (window.innerWidth >= 768) setMenuState(false); });
 
   root.querySelectorAll('[data-subscribe-form]').forEach((form) => {
-    form.addEventListener('submit', (event) => { event.preventDefault(); handleSubscribe(form); });
+    form.addEventListener('submit', (event) => { event.preventDefault(); void handleSubscribe(form); });
   });
 
   const dialog = root.getElementById('contact-dialog');
@@ -105,14 +114,43 @@ export function setupInteractions(root) {
   });
   dialog?.querySelector('[data-close-contact]')?.addEventListener('click', () => setDialogState(dialog, false));
   dialog?.addEventListener('click', (event) => { if (event.target === dialog) setDialogState(dialog, false); });
-  dialog?.querySelector('form')?.addEventListener('submit', (event) => {
+  dialog?.querySelector('form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const email = form.querySelector('[type="email"]');
     if (!emailPattern.test(email.value.trim())) { email.setAttribute('aria-invalid', 'true'); email.focus(); return; }
-    form.reset();
-    setDialogState(dialog, false);
-    showToast('Your message is on its way. We will reply within 48 hours.');
+    try {
+      const result = await sendContactMessage({ name: form.querySelector('[name="name"]').value.trim(), email: email.value.trim(), message: form.querySelector('[name="message"]').value.trim() });
+      form.reset();
+      setDialogState(dialog, false);
+      showToast(result.mode === 'endpoint' ? 'Your message is on its way. We will reply within 48 hours.' : 'Your email client is ready to send the message.');
+    } catch (error) {
+      showToast('We could not reach the mail service. Please try again.', 'error');
+    }
+  });
+
+  root.querySelectorAll('[data-donation-form]').forEach((form) => form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const amount = form.querySelector('[name="amount"]')?.value.trim();
+    const email = form.querySelector('[name="email"]');
+    if (!amount || Number(amount) <= 0 || !emailPattern.test(email.value.trim())) { email.setAttribute('aria-invalid', 'true'); email.focus(); return; }
+    email.removeAttribute('aria-invalid');
+    const button = form.querySelector('[type="submit"]');
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    try {
+      const result = await createDonationIntent({ amount: `$${Number(amount).toFixed(2)}`, email: email.value.trim(), project: form.querySelector('[name="project"]').value });
+      showToast(result.mode === 'endpoint' ? 'Secure donation checkout is opening.' : 'Your email client is ready to send the donation request.');
+    } catch { showToast('We could not start the donation flow. Please try again.', 'error'); }
+    button.disabled = false;
+    button.removeAttribute('aria-busy');
+  }));
+  root.querySelectorAll('[data-donation-form]').forEach((form) => {
+    const amount = form.querySelector('[name="amount"]');
+    form.querySelectorAll('[name="amount-choice"]').forEach((choice) => choice.addEventListener('change', () => { amount.value = choice.value; }));
+    const project = new URLSearchParams(window.location.search).get('project');
+    const projectSelect = form.querySelector('[name="project"]');
+    if (project && projectSelect && [...projectSelect.options].some((option) => option.text === project)) projectSelect.value = project;
   });
 
   const revealObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
