@@ -17,3 +17,7 @@ Run `npm install`, then `npm run dev`.
 Copy `.env.example` to `.env` and set `VITE_CONTACT_ENDPOINT`, `VITE_NEWSLETTER_ENDPOINT`, and/or `VITE_DONATION_ENDPOINT` to your approved HTTPS service endpoints. Requests are sent as JSON with `fetch`; without an endpoint, the site opens a transparent `mailto:` fallback instead of pretending that a message or payment was processed.
 
 The donation page is available at `/donate/`. A payment provider checkout URL or backend endpoint must be configured before collecting card details or real money.
+
+## Vercel deployment
+
+This is a client-routed Vite app. Keep the included `vercel.json` in the project root so direct visits to `/projects/`, `/donate/`, `/privacy/`, and other nested routes are rewritten to `index.html` instead of returning Vercel `NOT_FOUND` responses.
